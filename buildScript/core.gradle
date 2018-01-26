@@ -1,0 +1,23 @@
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    api libs.kotlin_stdlib
+    api libs.kotlin_android_runtime
+    api libs.kotlinx_coroutines
+    api libs.kotlinx_coroutines_android
+    api (libs.appcompat_v7){
+        exclude module: 'support-v4'
+        exclude module: 'transition'
+    }
+    api libs.fragment_v4
+
+    api libs.rxjava2
+    api libs.rxandroid2
+    api libs.retrofit2
+    api libs.retrofit2_converter
+    api libs.okhttp3
+    api libs.okio
+    testImplementation libs.junit
+    androidTestImplementation libs.runner
+    androidTestImplementation libs.espresso_core
+}

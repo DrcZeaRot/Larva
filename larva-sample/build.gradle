@@ -1,0 +1,22 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+apply from: "../buildScript/functions.gradle"
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId rootProject.ext.applicationId.sample
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName.sample
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    functions.applyFlavors(it)
+    functions.buildTypeApp(it, "larva_sample")
+    functions.compileOptions(it)
+}
+
+apply from: "../buildScript/sample.gradle"

@@ -1,0 +1,8 @@
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(":larva-core")
+    testImplementation libs.junit
+    androidTestImplementation libs.runner
+    androidTestImplementation libs.espresso_core
+}

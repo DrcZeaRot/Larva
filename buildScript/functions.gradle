@@ -1,0 +1,182 @@
+ext {
+    /**
+     * 添加productFlavor
+     */
+    def flavorClosure = { baseExtension ->
+
+        baseExtension.flavorDimensions "ApiLevel", "ProdType"
+
+        baseExtension.productFlavors {
+
+            dev {
+                dimension "ProdType"
+            }
+
+            prodDebug {
+                dimension "ProdType"
+                proguardFiles '../pluginProguardRules/common-proguard-rules.pro'
+            }
+
+            prodRelease {
+                dimension "ProdType"
+                proguardFiles '../pluginProguardRules/common-proguard-rules-nolog.pro'
+            }
+
+            minApi21 {
+                dimension "ApiLevel"
+                minSdkVersion rootProject.ext.minSdkVersion4Debug
+                baseExtension.dexOptions {
+                    javaMaxHeapSize "3g"
+                    preDexLibraries true //将lab预编译为dex
+                    dexInProcess = true
+                }
+            }
+
+            minApi17 {
+                dimension "ApiLevel"
+                minSdkVersion rootProject.ext.minSdkVersion
+                baseExtension.dexOptions {
+                    javaMaxHeapSize "3g"
+                    preDexLibraries true //将lab预编译为dex
+                    dexInProcess = true
+                }
+            }
+        }
+    }
+    /**
+     * 当前flavor是否复合要求
+     */
+    def isDevFlavor = { flavorName ->
+        Gradle gradle = getGradle()
+        String tskReqStr = gradle.getStartParameter().getTaskRequests().toString()
+        println "========isDevFlavor:${tskReqStr}"
+        def pattern
+
+        if (tskReqStr.contains("assemble"))
+        //noinspection UnnecessaryQualifiedReference
+            pattern = java.util.regex.Pattern.compile("assemble(MinApi17|MinApi21)(\\w+)(Release|Debug)")
+        else
+        //noinspection UnnecessaryQualifiedReference
+            pattern = java.util.regex.Pattern.compile("generate(MinApi17|MinApi21)(\\w+)(Release|Debug)")
+
+        def matcher = pattern.matcher(tskReqStr)
+
+        if (matcher.find()) {
+            def count = matcher.groupCount()
+
+            for (int i = 0; i < count; i++) {
+                def matched = matcher.group(i).toLowerCase()
+                println "=========matched=${matched}=========="
+                if (flavorName == matched) {
+                    println "=========isDev==========="
+                    return true
+                }
+            }
+            return false
+        }
+        return false
+    }
+
+    /**
+     * Application的buildType block
+     */
+    def buildTypeApp = { baseExtension, outputName ->
+
+        baseExtension.buildTypes {
+            release {
+                //忽略无用资源
+                shrinkResources true
+                //Zip代码压缩优化  
+                zipAlignEnabled true
+                //启动代码混淆
+                minifyEnabled true
+                //混淆规则文件
+                proguardFiles baseExtension.getDefaultProguardFile('proguard-android-optimize.txt'), '../pluginProguardRules/common-proguard-rules-nolog.pro'
+                //设置生成apk的文件名
+                baseExtension.applicationVariants.all { variant ->
+                    variant.outputs.all {
+                        it.outputFileName = "${outputName}.apk"
+                    }
+                }
+            }
+            debug {
+                //Zip代码压缩优化  
+                zipAlignEnabled true
+                //启动代码混淆
+                minifyEnabled !isDevFlavor("dev")
+                //混淆规则文件
+                proguardFiles baseExtension.getDefaultProguardFile('proguard-android-optimize.txt'), '../pluginProguardRules/common-proguard-rules.pro'
+                //设置生成apk的文件名
+                baseExtension.applicationVariants.all { variant ->
+                    variant.outputs.all {
+                        it.outputFileName = "${outputName}.apk"
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * library的buildType block
+     */
+    def buildTypeLib = { baseExtension ->
+
+        baseExtension.buildTypes {
+            release {
+                //Zip代码压缩优化  
+                zipAlignEnabled true
+                //启动代码混淆
+                minifyEnabled true
+                //混淆规则文件
+                proguardFiles baseExtension.getDefaultProguardFile('proguard-android-optimize.txt'), '../pluginProguardRules/common-proguard-rules-nolog.pro'
+            }
+            debug {
+                //Zip代码压缩优化  
+                zipAlignEnabled true
+                //启动代码混淆
+                minifyEnabled !isDevFlavor("dev")
+                //混淆规则文件
+                proguardFiles baseExtension.getDefaultProguardFile('proguard-android-optimize.txt'), '../pluginProguardRules/common-proguard-rules.pro'
+            }
+        }
+    }
+
+    def compileOptions = { baseExtension ->
+        baseExtension.compileOptions {
+            sourceCompatibility JavaVersion.VERSION_1_8
+            targetCompatibility JavaVersion.VERSION_1_8
+        }
+    }
+
+    def kotlinAndroidExt = { project ->
+        project.configurations.all { configuration ->
+            if ("implementation" == configuration.name) {
+                def dependencies = configuration.dependencies
+                dependencies.all {
+                    if ("org.jetbrains.kotlin" == it.group && "kotlin-android-extensions-runtime" == it.name) {
+                        dependencies.remove(it)
+                        project.dependencies.add("compileOnly", libs.kotlin_android_runtime)
+                        return
+                    }
+                }
+            }
+        }
+    }
+
+    functions = [
+            applyFlavors          : flavorClosure,
+            buildTypeApp          : buildTypeApp,
+            buildTypeLib          : buildTypeLib,
+            compileOptions        : compileOptions,
+            kotlinAndroidExtension: kotlinAndroidExt
+    ]
+}
+
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
+
+androidExtensions {
+    experimental = true
+}
