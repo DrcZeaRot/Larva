@@ -1,14 +1,15 @@
 package com.xcstasy.r.larva.core.framework.mvvm
 
 import com.xcstasy.r.larva.core.framework.cancelable.MvvmDisposer
+import com.xcstasy.r.larva.core.framework.databinding.BindingContextHolder
 import com.xcstasy.r.larva.core.framework.lifecycle.LifecycleEvent
 import com.xcstasy.r.larva.core.framework.lifecycle.LifecycleProvider
 
-        /**
-         * @author Drc_ZeaRot
-         * @since 2018/1/23
-         * @lastModified by Drc_ZeaRot on 2018/1/23
-         */
+/**
+* @author Drc_ZeaRot
+* @since 2018/1/23
+* @lastModified by Drc_ZeaRot on 2018/1/23
+*/
 
 typealias MView<VM> = MvvmContract.View<VM>
 
@@ -16,7 +17,7 @@ typealias MViewModel = MvvmContract.ViewModel
 
 interface MvvmContract {
 
-    interface View<out VM : ViewModel> : LifecycleProvider<LifecycleEvent>, MvvmDisposer, JobHolder {
+    interface View<out VM : ViewModel> : LifecycleProvider<LifecycleEvent>, MvvmDisposer, JobHolder, BindingContextHolder {
 
         val viewModel: VM?
 

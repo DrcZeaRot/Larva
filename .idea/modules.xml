@@ -3,8 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Larva.iml" filepath="$PROJECT_DIR$/Larva.iml" />
+      <module fileurl="file://F:\workspace\Studio\Larva\larva-sample\app.iml" filepath="F:\workspace\Studio\Larva\larva-sample\app.iml" />
       <module fileurl="file://$PROJECT_DIR$/larva-core/larva-core.iml" filepath="$PROJECT_DIR$/larva-core/larva-core.iml" />
-      <module fileurl="file://$PROJECT_DIR$/larva-sample/app.iml" filepath="$PROJECT_DIR$/larva-sample/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/larva-sample/larva-sample.iml" filepath="$PROJECT_DIR$/larva-sample/larva-sample.iml" />
     </modules>
   </component>
 </project>

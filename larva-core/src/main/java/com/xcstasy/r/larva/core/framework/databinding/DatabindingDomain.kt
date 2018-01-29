@@ -31,7 +31,7 @@ interface BindingDomain {
 open class DefaultDomain(override val baseView: MView<*>) : BindingDomain {
 
     inline fun <T, E> T.bind(dataFlow: IDataFlow<E>, crossinline onChange: T.(E) -> Unit) {
-        dataFlow.observe(baseView) { this.onChange(it) }
+        dataFlow.observe { this.onChange(it) }
     }
 
     inline fun <T> T.bindString(dataFlow: IDataFlow<String>, crossinline onChange: T.(String) -> Unit) {
@@ -46,7 +46,11 @@ open class DefaultDomain(override val baseView: MView<*>) : BindingDomain {
         bind(dataFlow, onChange)
     }
 
-    inline fun View.bindVisible(dataFlow: IDataFlow<Boolean>) {
+    inline fun <T> IDataFlow<T>.observe(noinline onChange: (T) -> Unit) {
+        observe(baseView, onChange)
+    }
+
+    fun View.bindVisible(dataFlow: IDataFlow<Boolean>) {
         bindBoolean(dataFlow) { visible = it }
     }
 
@@ -70,11 +74,11 @@ open class DefaultDomain(override val baseView: MView<*>) : BindingDomain {
         }.invokeOnCompletion { channel.cancel() }
     }
 
-    inline fun View.bindBg(dataFlow: IDataFlow<Int>) {
+    fun View.bindBg(dataFlow: IDataFlow<Int>) {
         bindInt(dataFlow) { setBackgroundResource(it) }
     }
 
-    inline fun TextView.bindText(dataFlow: IDataFlow<String>) {
+    fun TextView.bindText(dataFlow: IDataFlow<String>) {
         bindString(dataFlow) { text = it }
     }
 
@@ -89,20 +93,16 @@ open class DefaultDomain(override val baseView: MView<*>) : BindingDomain {
         dataFlow.observe(baseView) { text = it }
     }
 
-    inline fun TextView.bindHint(dataFlow: IDataFlow<String>) {
+    fun TextView.bindHint(dataFlow: IDataFlow<String>) {
         bindString(dataFlow) { hint = it }
     }
 
-    inline fun TextView.bindColorRes(dataFlow: IDataFlow<Int>) {
+    fun TextView.bindColorRes(dataFlow: IDataFlow<Int>) {
         bindInt(dataFlow) { setTextColor(it) }
     }
 
-    inline fun ImageView.bindImgRes(dataFlow: IDataFlow<Int>) {
+    fun ImageView.bindImgRes(dataFlow: IDataFlow<Int>) {
         bindInt(dataFlow) { setImageResource(it) }
-    }
-
-    inline fun <T> IDataFlow<T>.observe(noinline onChange: (T) -> Unit) {
-        observe(baseView, onChange)
     }
 }
 

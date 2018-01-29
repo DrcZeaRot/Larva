@@ -23,7 +23,7 @@ class KoroutineCallAdapterFactory : CallAdapter.Factory() {
         }
         if (returnType !is ParameterizedType) {
             throw IllegalStateException("WrapperBean return type must be parameterized " +
-                    "as WrapperBean<Foo> or WrapperBean<in Foo>")
+                    "as ApiResult<Foo> or ApiResult<in Foo>")
         }
         return BodyCallAdapter<ApiResult<*>>(returnType)
     }
