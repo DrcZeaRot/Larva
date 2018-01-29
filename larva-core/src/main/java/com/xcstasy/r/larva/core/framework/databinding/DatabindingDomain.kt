@@ -3,14 +3,15 @@ package com.xcstasy.r.larva.core.framework.databinding
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import com.xcstasy.r.larva.core.koroutine.extension.combineLatest
 import com.xcstasy.r.larva.core.extension.visible
 import com.xcstasy.r.larva.core.framework.cleanstructure.data.IDataFlow
 import com.xcstasy.r.larva.core.framework.cleanstructure.data.IKoroutineDataFlow
 import com.xcstasy.r.larva.core.framework.cleanstructure.data.IMutableDataFlow
 import com.xcstasy.r.larva.core.framework.cleanstructure.data.IReactDataFlow
 import com.xcstasy.r.larva.core.framework.databinding.viewbinding.koroutinebinding.TextViewAfterTextChangeHandler
+import com.xcstasy.r.larva.core.framework.mapping.ReactMappingFactory
 import com.xcstasy.r.larva.core.framework.mvvm.MView
+import com.xcstasy.r.larva.core.koroutine.extension.combineLatest
 import com.xcstasy.r.larva.core.koroutine.extension.default
 import io.reactivex.Observable
 import kotlinx.coroutines.experimental.channels.consumeEach
@@ -56,9 +57,10 @@ open class DefaultDomain(override val baseView: MView<*>) : BindingDomain {
 
     fun View.bindEnable(vararg dataFlow: IReactDataFlow<Any>) {
         dataFlow.map { it.validator(baseView) }
-                .let {
-                    Observable.combineLatest(it) { array -> array.all { it == true } }
-                }.subscribe({ this@bindEnable.isEnabled = it }, {})
+                .let { Observable.combineLatest(it) { array -> array.all { it == true } } }
+                .compose(ReactMappingFactory.disposer(baseView))
+                .compose(ReactMappingFactory.scheduler())
+                .subscribe({ this@bindEnable.isEnabled = it }, {})
     }
 
     fun View.bindEnable(vararg dataFlow: IKoroutineDataFlow<Any>) {

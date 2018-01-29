@@ -16,14 +16,12 @@ import java.lang.reflect.Type
  */
 class KoroutineCallAdapterFactory : CallAdapter.Factory() {
 
-
     override fun get(returnType: Type, annotations: Array<out Annotation>?, retrofit: Retrofit?): CallAdapter<*, *>? {
         if (getRawType(returnType) !== ApiResult::class.java) {
             return null
         }
         if (returnType !is ParameterizedType) {
-            throw IllegalStateException("WrapperBean return type must be parameterized " +
-                    "as ApiResult<Foo> or ApiResult<in Foo>")
+            throw IllegalStateException("ApiResult return type must be parameterized as ApiResult<Foo> or ApiResult<in Foo>")
         }
         return BodyCallAdapter<ApiResult<*>>(returnType)
     }
@@ -39,29 +37,28 @@ class KoroutineCallAdapterFactory : CallAdapter.Factory() {
             suspendBody(call)
         }
 
+        @Suppress("UNCHECKED_CAST")
         private suspend fun suspendBody(call: Call<R>): R =
                 suspendCancellableCoroutine { cont ->
                     call.enqueue(object : Callback<R> {
-                        override fun onResponse(innerCall: Call<R>?, response: Response<R>?) {
+                        override fun onResponse(innerCall: Call<R>, response: Response<R>?) {
                             bothNotNull(response, response?.body()) { resp, body ->
                                 if (cont.isActive) {
                                     if (resp.isSuccessful) {
                                         if (body is UrlSignature) {
-                                            body.tag = call.request().url().toString()
+                                            body.tag = innerCall.request().url().toString()
                                         }
                                         cont.resume(body)
                                     } else {
-                                        cont.resume(FailureReceiver(call) as R)
+                                        cont.resume(FailureReceiver(innerCall) as R)
                                     }
                                 }
                             }
                         }
 
-                        override fun onFailure(innerCall: Call<R>?, t: Throwable?) {
+                        override fun onFailure(innerCall: Call<R>, t: Throwable) {
                             if (cont.isActive) {
-                                t?.also {
-                                    cont.resume(FailureReceiver(call) as R)
-                                }
+                                cont.resume(FailureReceiver(innerCall) as R)
                             }
                         }
                     })
@@ -80,7 +77,7 @@ class FailureReceiver(call: Call<*>) : UrlSignature {
     override var tag: String = call.request().url().toString()
 }
 
-private fun <L, R> bothNotNull(left: L?, right: R?, block: (L, R) -> Unit) {
+private inline fun <L, R> bothNotNull(left: L?, right: R?, block: (L, R) -> Unit) {
     if (left != null && right != null) {
         block(left, right)
     }
